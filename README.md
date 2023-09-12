@@ -34,5 +34,19 @@ digamos que K es la cantidad de "records" en las hojas.
 
 
 
+## NOTAS
+- estructura del archivo heap_file, trabajare con un free list tipo LIFO. en el next guardare la posicion relativa.(0,1,2,3 ...)
+
+next 
+
+record next
+
+record next 
+
+..
+ ...
+
+record next
+
 
 
