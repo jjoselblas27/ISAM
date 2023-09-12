@@ -50,26 +50,29 @@ private:
     IndexPage<TK> indiceRAM;
 
     void buildStruct(vector<Pares<TK>> ord){
-        //construir
+        
+
     }
 
     //retorna la posicion en el archivo de datos.
     long searchIndice(TK key){
+
+        IndexPage<TK> index;
         //busqueda en la altura 2.
         long pos = indiceRAM.search(key);
+
         //busqueda altura 1
-        File.open(IndexFile[1], ios::in|ios::binary)
+        File.open(IndexFile[1], ios::in|ios::binary);
         File.seekg(pos);
-        IndexPage<TK> index;
         File.read((char*) &index, sizeof(index));
         File.close();
 
         pos = index.search(key);
 
         //busqueda altura 0
-        File.open(IndexFile[0], ios::in|ios::binary)
+        File.open(IndexFile[0], ios::in|ios::binary);
         File.seekg(pos);
-        IndexPage<TK> index;
+
         File.read((char*) &index, sizeof(index));
         pos = index.search(key);
 
@@ -78,7 +81,7 @@ private:
         return pos;
     }
 
-    void load() {
+    void load(string database) {
         std::fstream csvFile(database, std::ios::in);
         File.open(dataFile, ios::out|ios::binary|ios::app);
 
@@ -121,7 +124,7 @@ private:
 
             Record record(knownAs, nationality, clubName, clubJerseyNumber, overall, bestPosition, value, age, height, weight);
 
-            File.write((char*) &record, sizeof(reocord));
+            File.write((char*) &record, sizeof(record));
             File.write((char*) &first, sizeof(first));
         }
 
@@ -130,10 +133,11 @@ private:
     }
 
     void buildIsam(){
-        File.open(dataFile, ios::in|ios::binary|ios::end);
-
+        File.open(dataFile, ios::in|ios::binary);
+        File.seekg(0, ios::end);
+        
         long numRecord = File.tellg()/sizeof(Record);
-        long minRecord = N*pow(M,3);
+        long minRecord = N<TK>*pow(M<TK>,3);
 
         if(numRecord < minRecord){
             //error
@@ -155,7 +159,7 @@ private:
         }
 
         //ordenando en RAM
-        sort(paresKeyPos.begin(),paresKeyPos.end(), Greater);
+        sort(paresKeyPos.begin(),paresKeyPos.end(), Greater());
 
         //construyo la estructura del arbol
         buildStruct(paresKeyPos);
@@ -194,10 +198,12 @@ private:
             File.write((char*) &header, sizeof(header)); //header == -1
         }else{
             long empty = -1;
-            File.seekg(sizeof(long + header*(sizeof(record) + sizeof(long))) + sizeof(record), ios::beg);
+            long res = sizeof(long)+ header*(sizeof(record) + sizeof(long)) + sizeof(record);
+            File.seekg(res, ios::beg);
             File.read((char*) &next, sizeof(next));
             
-            File.seekp(sizeof(long + header*(sizeof(record) + sizeof(long))), ios::beg);
+            res = sizeof(long) + header*(sizeof(record) + sizeof(long));
+            File.seekp(res, ios::beg);
             File.write((char*) &record, sizeof(record));
             File.write((char*) &empty, sizeof(empty));
 
@@ -215,7 +221,7 @@ private:
 
     //asumo que la posicion es correcta
     void deleteListDataFile(vector<long> positions){
-        File.open(dataFile, ios::in|ios::out|ios:binary);
+        File.open(dataFile, ios::in|ios::out|ios::binary);
 
         for(auto pos : positions){
         
@@ -236,14 +242,18 @@ private:
         File.close();
     }
 public:
-    ISAM(string dataFile, string nameKey){
+    ISAM(string database, string dataFile, string nameKey){
         this->dataFile = dataFile + ".bin";
-        this->HeapFile = "heap_" + nameKey + "_" + datafile + ".bin";
+        this->HeapFile = "heap_" + nameKey + "_" + dataFile + ".bin";
         for(int i=0;i<3;i++){
             this->IndexFile[i] = nameKey + "_indice_" + to_string(i) + ".bin";
         }
 
         if(!existe(IndexFile[2])){
+            //verificar si existe el dataFile
+            if(!existe(dataFile)) 
+                load(database);
+            
             buildIsam();
         }
 
@@ -268,7 +278,7 @@ public:
         File.open(dataFile, ios::in|ios::out|ios::binary);
         DataPage<TK> data;
 
-        next = position;
+        long next = position;
         do{
             File.seekg(next,ios::beg);
             File.read((char*) &data, sizeof(data));
@@ -303,17 +313,16 @@ public:
         File.close();
 
 
-
     }
 
     //retorno los records que contenga la misma key
     std::vector<Record> Search(TK key){
         //obtengo la posicion en el archivo de datos(heapfile)
         long position = searchIndice(key);
-        DataPage<key> data;
+        DataPage<TK> data;
         File.open(HeapFile, ios::in|ios::binary);
 
-        next = position;
+        long next = position;
         std::vector<long> pos_records;
         do{
             File.seekg(next, ios::beg);
@@ -351,22 +360,24 @@ public:
     /*
     Aprovecho que en la construccion de la estructura tuve un arbol completo, se que hasta cierto limite, k, los dataPages estan ordenados
     */
-    std::vector<Record> rangeSearch(Key inf, Key sup){        
-        long position = searchIndice(key);
-        DataPage data;
+    std::vector<Record> rangeSearch(TK inf, TK sup){        
+        long position = searchIndice(inf);
+        DataPage<TK> data;
         File.open(HeapFile, ios::in|ios::binary);
 
         std::vector<long> pos_records;
 
         //MODIFICAR
-        long limite = 0;
+        long limite = N<TK> * pow(M<TK>, 3);
 
-        bool getnew = false;
-        next = position;
+        long salto = position;
+        bool getnew;
         do{        
             //busco en todos los Pares de una pagina y los nexts
+            long next = salto;
+            getnew = false;
             do{
-                File.seekg(next, ios::binary);
+                File.seekg(next, ios::beg);
                 File.read((char*) &data, sizeof(data));
                 std::vector<long> temp = data.range(inf, sup);
                 
@@ -380,9 +391,9 @@ public:
             }while(next != -1);
 
             //me muevo a la siguiente pagina.
-            next = next + sizeof(DataPage);
+            salto = salto + sizeof(DataPage<TK>);
 
-        }while(next != limite && getnew);
+        }while(salto < limite && getnew);
 
         File.close();
         
@@ -406,26 +417,29 @@ public:
 
     void remove(TK key){
         long position = searchIndice(key);
-        DataPage<key> data;
-        File.open(HeapFile, ios::in|ios::binary);
+        DataPage<TK> data;
+        File.open(HeapFile, ios::out|ios::in|ios::binary);
 
-        next = position;
+        long next = position;
         std::vector<long> pos_records;
         do{
             File.seekg(next, ios::beg);
             File.read((char*) &data, sizeof(data));
-            if(count > 0){
+            if(data.count > 0){
                 //cambio el ultimo por el que estoy revisando
                 for(int i = 0; i < data.count; i++){
                     if(data.page[i] == key){
                         pos_records.push_back(data.page[i].getKey());
 
-                        data.page[i] = data.page[count-1];
+                        data.page[i] = data.page[data.count-1];
                         data.count--;
                     }
                 }
+                
+                //escribo en memoria el cambio
+                File.seekp(next, ios::beg);
+                File.write((char*) &data, sizeof(data));
             }
-            
 
             next = data.getNext();
         }while(next != -1);

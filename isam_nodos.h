@@ -6,8 +6,8 @@ Index_page : nodos dentro de la pagina de indices.
 Leaf_page: nodos dentro del archivo de hojas.
 
 */
-#ifndef ISAM_NODOS.H
-#define ISAM_NODOS.H
+#ifndef ISAM_NODOS_H
+#define ISAM_NODOS_H
 
 #include <iostream>
 #include <vector>
@@ -15,26 +15,31 @@ Leaf_page: nodos dentro del archivo de hojas.
 #include "./others.h"
 
 
-#define PAGE_SIZE =  2000
+#define PAGE_SIZE 2000
 
 //DEFINIR M y K 
-long M = 20;
-long N = 20;
+template<typename TK>
+inline static constexpr long M = (PAGE_SIZE - sizeof(int) - sizeof(long)) / (sizeof(Pares<TK>) + sizeof(long));
+
+
+template<typename TK>
+inline static constexpr long N = (PAGE_SIZE - sizeof(int) - sizeof(long)) / (sizeof(Pares<TK>));
+
 
 //archivo de indices 1,2,3
 // pares: tupla<key,posicion>
 template<typename Key>
 class IndexPage{
-    Pares<Key> page[M]
-    long children[M+1]; 
+    Pares<Key> page[M<Key>];
+    long children[M<Key> + 1]; 
     int count;
 public:
     IndexPage(){count = 0;}
 
     bool insert(Pares<Key> par){
-        if(count == M) return false;
+        if(count == M<Key>) return false;
 
-        Page[count] = par;
+        page[count] = par;
         count++;
         return true;
     }
@@ -58,16 +63,16 @@ public:
 //archivo de datos
 template<typename Key>
 struct DataPage{
-    Pares<Key> page[N];
+    Pares<Key> page[N<Key>];
     int count;
     long next;
 
-    IndexPage(){count = 0;next = -1;}
+    DataPage(){count = 0;next = -1;}
 
     bool insert(Pares<Key> par){
-        if(count == M) return false;
+        if(count == N<Key>) return false;
 
-        Page[count] = par;
+        page[count] = par;
         count++;
         return true;
     }
@@ -79,7 +84,7 @@ struct DataPage{
         std::vector<long> res;
         for(int i = 0; i < count; i++){
             if(page[i].getKey() == key){
-                res.append(page[i].getPos());
+                res.push_back(page[i].getPos());
             }
         }
 
@@ -88,22 +93,16 @@ struct DataPage{
 
 
     //busco entre los hijos y retorno coincidencias.
-    std::vector<long> range(Key inf, key sup){
+    std::vector<long> range(Key inf, Key sup){
         std::vector<long> res;
         for(int i = 0; i < count; i++){
             if(inf <= page[i].getKey() && page[i].getKey() < sup){
-                res.append(page[i].getPos());
+                res.push_back(page[i].getPos());
             }
         }
 
         return res;
     }
-
-    void reorder(std::vector<long> pos){
-
-    }
-
-
 };
 
-#endif //ISAM_NODOS.H
+#endif //ISAM_NODOS_H

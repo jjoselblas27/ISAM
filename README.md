@@ -35,6 +35,14 @@ digamos que K es la cantidad de "records" en las hojas.
 
 
 ## NOTAS
+- definicion de archivos:
+    - database -> archivo csv con los datos.
+    - dataFIle -> archivo binario con los records(no importa el orden) y el next para cada uno.
+    - heapFIle -> archivo binario con las DataPage, los cuales contienen Pares\<key, position>.
+    - IndexFile[i] -> archivo binario con los indices de altura i-1
+
+
+
 - estructura del archivo heap_file, trabajare con un free list tipo LIFO. en el next guardare la posicion relativa.(0,1,2,3 ...)
 
 next 
