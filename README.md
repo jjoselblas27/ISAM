@@ -42,19 +42,8 @@ digamos que K es la cantidad de "records" en las hojas.
     - IndexFile[i] -> archivo binario con los indices de altura i-1
 
 
-
-- estructura del archivo heap_file, trabajare con un free list tipo LIFO. en el next guardare la posicion relativa.(0,1,2,3 ...)
-
-next 
-
-record next
-
-record next 
-
-..
- ...
-
-record next
-
+## PROBLEMAS
+- la funcion para construir la estructura esta mal.
+- Problema como guardo la posicion del next en el heapfile.
 
 

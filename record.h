@@ -13,7 +13,7 @@ struct Player {
     int clubJerseyNumber;
     int overall;
     char bestPosition[4]{'\0'};
-    int value;
+    long value;
     int age;
     int height;
     int weight;
@@ -21,12 +21,13 @@ struct Player {
     Player() = default;
 
     Player(std::string knownAs, std::string nationality, std::string clubName, int clubJerseyNumber, 
-            int overall, std::string bestPosition, int value, int age, int height, int weight) : 
-        clubJerseyNumber(clubJerseyNumber), overall(overall), value(value), age(age), height(height), weight(weight) {
+            int overall, std::string bestPosition, long value, int age, int height, int weight) : 
+        clubJerseyNumber(clubJerseyNumber), overall(overall), age(age), height(height), weight(weight) {
         std::copy(knownAs.begin(), knownAs.end(), this->knownAs);
         std::copy(nationality.begin(), nationality.end(), this->nationality);
         std::copy(clubName.begin(), clubName.end(), this->clubName);
         std::copy(bestPosition.begin(), bestPosition.end(), this->bestPosition);
+        this->value = value;
     }
 
     std::string to_string() {

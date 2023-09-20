@@ -19,58 +19,69 @@ Leaf_page: nodos dentro del archivo de hojas.
 
 //DEFINIR M y K 
 template<typename TK>
-inline static constexpr long M = (PAGE_SIZE - sizeof(int) - sizeof(long)) / (sizeof(Pares<TK>) + sizeof(long));
-
+//inline static constexpr long M = (PAGE_SIZE - sizeof(int) - sizeof(long)) / (sizeof(Pares<TK>) + sizeof(long));
+inline static constexpr long M = 2;
 
 template<typename TK>
-inline static constexpr long N = (PAGE_SIZE - sizeof(int) - sizeof(long)) / (sizeof(Pares<TK>));
-
+//inline static constexpr long N = (PAGE_SIZE - sizeof(int) - sizeof(long)) / (sizeof(Pares<TK>));
+inline static constexpr long N = 2;
 
 //archivo de indices 1,2,3
-// pares: tupla<key,posicion>
-template<typename Key>
-class IndexPage{
-    Pares<Key> page[M<Key>];
-    long children[M<Key> + 1]; 
+// pares: tupla<TK,posicion>
+template<typename TK>
+struct IndexPage{
+    Pares<TK> page[M<TK>];
+    long children[M<TK> + 1] = {0}; 
     int count;
 public:
     IndexPage(){count = 0;}
 
-    bool insert(Pares<Key> par){
-        if(count == M<Key>) return false;
+    bool insertPar(Pares<TK> par){
+        if(count == M<TK>) return false;
 
         page[count] = par;
         count++;
         return true;
     }
+    
+    void insertChildren(long pos){
+        children[count] = pos;
+    }
 
     //busco entre los hijos y retorno coincidencias.
-    long search(Key key){
+    long search(TK key){
         int i = 0;
         for(; i < count; i++){
-            if(page[i].getKey() > key) return children[i];
+            if(page[i].key > key) return children[i];
         }
 
         return children[i];
     }
 
+    //is full las llaves m
+    bool is_full(){
+        return count >= M<TK>;
+    }
 
+    void reset(){
+        this->count = 0;
+    }
 };
 
 
 
 //
 //archivo de datos
-template<typename Key>
+template<typename TK>
 struct DataPage{
-    Pares<Key> page[N<Key>];
+    Pares<TK> page[N<TK>];
     int count;
     long next;
 
     DataPage(){count = 0;next = -1;}
 
-    bool insert(Pares<Key> par){
-        if(count == N<Key>) return false;
+    bool insert(Pares<TK> par){
+        if(count == N<TK>) return false;
 
         page[count] = par;
         count++;
@@ -80,11 +91,11 @@ struct DataPage{
     long getNext(){return next;}
 
     //busco entre los hijos y retorno coincidencias.
-    std::vector<long> search(Key key){
+    std::vector<long> search(TK key){
         std::vector<long> res;
         for(int i = 0; i < count; i++){
-            if(page[i].getKey() == key){
-                res.push_back(page[i].getPos());
+            if(page[i].key == key){
+                res.push_back(page[i].position);
             }
         }
 
@@ -93,15 +104,27 @@ struct DataPage{
 
 
     //busco entre los hijos y retorno coincidencias.
-    std::vector<long> range(Key inf, Key sup){
+    std::vector<long> range(TK inf, TK sup){
         std::vector<long> res;
         for(int i = 0; i < count; i++){
-            if(inf <= page[i].getKey() && page[i].getKey() < sup){
-                res.push_back(page[i].getPos());
+            if(inf <= page[i].key && page[i].key < sup){
+                res.push_back(page[i].position);
             }
         }
 
         return res;
+    }
+
+    void reset(){
+        this->count = 0;
+        this->next = -1;
+    }
+
+    void show(){
+        for (int i=0;i<count;i++){
+            cout << page[i].key << ", ";
+        }
+        cout << ". next: " << next << endl;
     }
 };
 

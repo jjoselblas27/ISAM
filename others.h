@@ -17,18 +17,19 @@ bool existe(string name){
 }
 
 
-template<typename Key>
-class Pares{
-    Key key;
+template<typename TK>
+struct Pares{
+    TK key;
     long position;
-public:
-    Pares(Key key, long position){
+
+    Pares(){};
+    Pares(TK key, long position){
         this->key = key;
         this->position = position;
     }
 
-    Key getKey(){
-        return key;
+    TK getKey(){
+        return this->key;
     }
 
     long getPos(){
@@ -37,6 +38,7 @@ public:
 
 
 };
+
 
 
 #endif //OTHERS_H
