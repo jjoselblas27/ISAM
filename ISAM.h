@@ -56,10 +56,15 @@ private:
     IndexPage<TK> indiceRAM;
 
     void buildStruct(vector<Pares<TK>> ord, long numPages){
-        File.open(HeapFile, ios::out|ios::binary|ios::app);
-        fstream index3(IndexFile[2],ios::out|ios::binary|ios::app);//nivel 3
-        fstream index2(IndexFile[1],ios::out|ios::binary|ios::app);//nivel 2
-        fstream index1(IndexFile[0],ios::out|ios::binary|ios::app); //root
+        File.open(HeapFile, ios::out|ios::binary);
+        fstream index3(IndexFile[2],ios::out|ios::binary);//nivel 3
+        fstream index2(IndexFile[1],ios::out|ios::binary);//nivel 2
+        fstream index1(IndexFile[0],ios::out|ios::binary); //root
+
+        File.seekp(0,ios::end);
+        index3.seekp(0,ios::end);
+        index2.seekp(0,ios::end);
+        index1.seekp(0,ios::end);
 
         long k1 = 0, k2 = 0, k3 = 0;
 
@@ -68,18 +73,12 @@ private:
         IndexPage<TK> indexPage2;
         IndexPage<TK> indexPage1;
 
-        cout << "build struct: \n" << endl;
 
         for (int i = 0; i < numPages; i++){
             DataPage<TK> dataPage;
             for(int j = 0; j < N<TK>; j++){
                 dataPage.insert(ord[i*N<TK> + j]);
             }
-
-            for(int i=0;i<N<TK>;i++){
-                cout << dataPage.page[i].key <<" - " << dataPage.page[i].position << "   "; 
-            }
-            cout << endl << endl;
 
             //escribo en memoria
             File.write((char*) &dataPage, sizeof(dataPage));
@@ -92,22 +91,9 @@ private:
             if(!indexPage3.is_full()){
                 indexPage3.insertChildren((k3++) * sizeof(DataPage<TK>));
                 indexPage3.insertPar(par);
-                
-                cout << par.key << " - pos3 "  << ((k3-1) * sizeof(DataPage<TK>)) << endl;
 
             }else{
                 indexPage3.insertChildren((k3++) * sizeof(DataPage<TK>));
-
-                cout << "write3 - " << (k3-1) * sizeof(DataPage<TK>) << endl;
-                for(int i=0;i<M<TK>;i++){
-                    cout << indexPage3.page[i].key << "   "; 
-                }
-                cout << endl;
-
-                for(int i=0;i<M<TK>+1;i++){
-                    cout << indexPage3.children[i] << "   "; 
-                }
-                cout << endl << endl;
 
                 index3.write((char*) &indexPage3, sizeof(indexPage3));
                 indexPage3.reset();
@@ -116,21 +102,8 @@ private:
                     indexPage2.insertChildren((k2++) * sizeof(IndexPage<TK>));
                     indexPage2.insertPar(par);
                     
-                    cout <<  par.key << " pos2 - " << (k2-1) * sizeof(IndexPage<TK>) << endl;
                 }else{
                     indexPage2.insertChildren((k2++) * sizeof(IndexPage<TK>));
-                    cout << "write2 - " << (k2-1) * sizeof(IndexPage<TK>) << endl;
-
-                    cout << "write3 - " << (k3-1) * sizeof(DataPage<TK>) << endl;
-                    for(int i=0;i<M<TK>;i++){
-                        cout << indexPage2.page[i].key << "   "; 
-                    }
-                    cout << endl;
-
-                    for(int i=0;i<M<TK>+1;i++){
-                        cout << indexPage2.children[i] << "   "; 
-                    }
-                    cout << endl << endl;
 
                     index2.write((char*) &indexPage2, sizeof(IndexPage<TK>));
 
@@ -139,7 +112,6 @@ private:
                     //escribir en el root.
                     indexPage1.insertChildren((k1++) * sizeof(IndexPage<TK>));
                     indexPage1.insertPar(par);
-                    cout <<  par.key << "pos1 - " << (k1-1) * sizeof(IndexPage<TK>) << endl;
                 }
             }
         }
@@ -149,44 +121,12 @@ private:
         index3.write((char*) &indexPage3, sizeof(IndexPage<TK>));
 
 
-        cout << "write3 - " << (k3) * sizeof(DataPage<TK>) << endl;
-        for(int i=0;i<M<TK>;i++){
-            cout << indexPage3.page[i].key << "   "; 
-        }
-        cout << endl;
-
-        for(int i=0;i<M<TK>+1;i++){
-            cout << indexPage3.children[i] << "   "; 
-        }
-        cout << endl << endl;
-
         indexPage2.insertChildren(k2 * sizeof(IndexPage<TK>));
         index2.write((char*) &indexPage2, sizeof(IndexPage<TK>));
-
-        cout << "write2 - " << (k2) * sizeof(DataPage<TK>) << endl;
-        for(int i=0;i<M<TK>;i++){
-            cout << indexPage2.page[i].key << "   "; 
-        }
-        cout << endl;
-
-        for(int i=0;i<M<TK>+1;i++){
-            cout << indexPage2.children[i] << "   "; 
-        }
-        cout << endl << endl;
 
         indexPage1.insertChildren(k1 * sizeof(IndexPage<TK>));
         index1.write((char*) &indexPage1, sizeof(IndexPage<TK>));
 
-        cout << "write1 - " << (k1) * sizeof(DataPage<TK>) << endl;
-        for(int i=0;i<M<TK>;i++){
-            cout << indexPage1.page[i].key << "   "; 
-        }
-        cout << endl;
-
-        for(int i=0;i<M<TK>+1;i++){
-            cout << indexPage1.children[i] << "   "; 
-        }
-        cout << endl << endl;
 
         File.close();
         index3.close();
@@ -194,16 +134,13 @@ private:
         index1.close();
     }
     
-    //retorna la posicion de la pagina en el heapfile
+    //retorna la posicion absoluta de la pagina en el heapfile
     long searchIndice(TK key){
-
-        cout << "\n\n searchIndex " << endl;
-
         IndexPage<TK> index2;
         IndexPage<TK> index3;
         //busqueda en el nivel 1
         long pos = indiceRAM.search(key);
-        cout << "nivel 1 - " << pos << endl;
+        
         //busqueda en nivel 2
         File.open(IndexFile[1], ios::in|ios::binary);
         File.seekg(pos, ios::beg);
@@ -211,27 +148,23 @@ private:
         File.close();
 
         pos = index2.search(key);
-        cout << "nivel 2 - " << pos << endl; 
 
         //busqueda en nivel 3
         File.open(IndexFile[2], ios::in|ios::binary);
-        File.seekg(0,ios::end);
-
-        cout << "pos max3 : " << File.tellg() << endl;
-
         File.seekg(pos, ios::beg);
         File.read((char*) &index3, sizeof(index3));
         File.close();
 
         pos = index3.search(key);
-        cout << "nivel 3 - " << pos << endl;
+
         return pos;
     }
 
     void load(string database) {
         std::fstream csvFile(database, std::ios::in);
-        File.open(dataFile, ios::out|ios::binary|ios::app);
+        File.open(dataFile, ios::out|ios::binary);
 
+        //creo el header
         long first = -1;
         File.write((char*) &first, sizeof(first));
 
@@ -295,8 +228,6 @@ private:
         std::vector<Pares<TK>> paresKeyPos;
         paresKeyPos.reserve(minRecord);
 
-        cout << "pares:" << endl;
-
         //me ubico despues del header.
         FileData.seekg(sizeof(long),ios::beg);
         long basura;
@@ -315,24 +246,16 @@ private:
         return a.key < b.key;
         });
 
-        //PRUEBAS
-        for(auto par : paresKeyPos){
-            cout << par.key << ", " << par.position << endl;
-        }
 
         //construyo la estructura del arbol
         buildStruct(paresKeyPos, pow(M<TK>+1,3));
 
-
-        //cout << "despues struct:" <<  endl;
         //inserto los que faltan
         long position = (FileData.tellg() - sizeof(long)) /(sizeof(Record) + sizeof(long)) ;
         while(FileData.read((char*) &record, sizeof(record))){
             FileData.read((char*) &basura, sizeof(basura));
             Pares<TK> par(getKey(record), position);
             this->insert(par);
-
-            //cout << par.key << ", " << par.position << endl;
 
             position = (FileData.tellg() - sizeof(long)) /(sizeof(Record) + sizeof(long)) ;
         }
@@ -341,55 +264,57 @@ private:
         FileData.close();
     }
 
-
-    //manejo una estructura freelist LIFO, retorna una posicion relativa en el datafile
+    //inserto en el dataFile y retorno su posicion relativa.
     long insertDataFile(Record &record){
-        File.open(dataFile, ios::in|ios::out|ios::binary|ios::app);
+        fstream FileData(dataFile, ios::in|ios::out|ios::binary);
         //datafile freeelist tipo LIFO
         long header;
-        File.seekg(0,ios::beg);
-        File.read((char*) &header, sizeof(header));
-
+        FileData.seekg(0,ios::beg);
+        FileData.read((char*) &header, sizeof(header));
+        
         //posicion donde escribire.
-        long position;
-        if(header == -1){
-            File.seekp(0,ios::end);
-            position = (File.tellp() - sizeof(long)) / (sizeof(Record) + sizeof(long));
+        long position = 0;
+        if(header < 0){
+            FileData.seekp(0,ios::end);
 
-            File.write((char*) &record, sizeof(record));
-            File.write((char*) &header, sizeof(header)); //header == -1
-        }else{
-            long empty = -1;
-            long next;
-
-            //transformo header a posicion absoluta
-            position = sizeof(long)+ header*(sizeof(record) + sizeof(long)) + sizeof(record);
-            File.seekg(position, ios::beg);
-            File.read((char*) &next, sizeof(next));
+            //transformo a posicion relativa
+            position = (FileData.tellp() - sizeof(long)) / (sizeof(Record) + sizeof(long));
             
-            position = sizeof(long) + header*(sizeof(record) + sizeof(long));
-            File.seekp(position, ios::beg);
-            File.write((char*) &record, sizeof(record));
-            File.write((char*) &empty, sizeof(empty));
+            FileData.write((char*) &record, sizeof(record));
+            FileData.write((char*) &header, sizeof(header)); //header == -1
+            FileData.flush();
+        }else{
+            Record temp2;
+            long empty = -1; //solo guarda -1
+            long next = 0;
 
+            position = header;
+
+            //ubico el puntero con la posicion absoluta
+            FileData.seekg(sizeof(long)+ position*(sizeof(record) + sizeof(long)) + sizeof(record), ios::beg);
+            FileData.read((char*) &next, sizeof(next));
+            
+
+            FileData.seekg(sizeof(long)+ position*(sizeof(record) + sizeof(long)), ios::beg);
+            FileData.write((char*) &record, sizeof(record));
+            FileData.write((char*) &empty, sizeof(empty));
 
             //cambio el header
-            File.seekp(0,ios::beg);
-            File.write((char*) &next, sizeof(next));
+            FileData.seekp(0,ios::beg);
+            FileData.write((char*) &next, sizeof(next));
         }
         
-        File.close();
+        FileData.close();
 
         return position;
     }
 
 
-    //tengo un vector con posiciones relativas. freelist LIFO
+    //tengo un vector con posiciones relativas.
     void deleteListDataFile(vector<long> positions){
         File.open(dataFile, ios::in|ios::out|ios::binary);
+        for(long pos : positions){
 
-        for(auto pos : positions){
-        
             long header;
             File.seekg(0,ios::beg);
             File.read((char*) &header, sizeof(header));
@@ -401,14 +326,13 @@ private:
             //sobreescribo en header
             File.seekp(0,ios::beg);
             File.write((char*) &pos, sizeof(pos));
-
         }
 
         File.close();
     }
 public:
     ISAM(string database, string dataFile, string nameKey, getLlave getKey){
-        cout << "entre " << endl;
+
         this->dataFile = "./database/" + dataFile + ".bin";
         this->HeapFile = "./database/heap_" + nameKey + ".bin";
         for(int i=0;i<3;i++){
@@ -419,10 +343,8 @@ public:
 
         //verifico si existen los indices.
         if(!existe(IndexFile[0])){
-            cout << "no existe " << endl;
             //verificar si existe el dataFile
             if(!existe(dataFile)) {
-                cout << "load" << endl;
                 load(database);
 
             }
@@ -430,33 +352,26 @@ public:
             buildIsam();
         }
 
-        cout << "aca" << endl;
-
         //cargo a ram el root
         File.open(IndexFile[0], ios::in|ios::binary);
         File.read((char*) &this->indiceRAM, sizeof(this->indiceRAM));
-        cout << "carge root a RAM" << endl;
+
         File.close();
     }
 
-
+    //insertar en el datafile.
     void insertRecord(Record record){
         long pos = insertDataFile(record);
-        cout << "insert key: " <<  getKey(record) << " ";
-        cout << "pos:" << pos << endl;
         Pares<TK> par(getKey(record), pos);
-
 
         this->insert(par);
     }
-    //tengo que considerar que pueden haber dataPage vacios.
+
+    //insertar en el heapfile
     void insert(Pares<TK> par){
-        cout << "insert" << endl;
-        //insertar en el heapfile
 
         //busco la pagina que me coreesponde.
         long position = searchIndice(par.key);
-
 
         fstream fileHeap(HeapFile, ios::in|ios::out|ios::binary);
         DataPage<TK> data;
@@ -475,9 +390,6 @@ public:
                 fileHeap.write((char*) &data, sizeof(data));
 
                 fileHeap.close();
-                //termine de insertar.
-
-                cout << "dentro " << endl;
 
                 return;
             }
@@ -498,16 +410,11 @@ public:
         fileHeap.write((char*) &data, sizeof(data));
 
 
-        cout << "nuevo: " << nuevo << " padre: " << next << endl;  
-
-        temp.show();
-
         fileHeap.close();
     }
 
     //retorno los records que contenga la misma key
     std::vector<Record> Search(TK key){
-        cout << "entre al search " << endl;
         //obtengo la posicion en el archivo de datos(heapfile)
         long position = searchIndice(key);
         DataPage<TK> data;
@@ -516,27 +423,17 @@ public:
         long next = position;
         std::vector<long> pos_records;
 
-        cout << "search while, pos:" << next << endl;
         do{
             fileHeap.seekg(next, ios::beg);
             fileHeap.read((char*) &data, sizeof(data));
             
-            cout << "count: " << data.count << endl;
-
-            //imprimo el data:
-            data.show();
 
             std::vector<long> temp = data.search(key);
-            //std::vector<long> temp;
+            
             //insertar al conjunto de resultados
             pos_records.insert(pos_records.end(), temp.begin(), temp.end());
 
-            if(next == data.next){
-                cout << "igual" << endl;
-                break;
-            }
             next = data.next;
-            cout << next << endl;
             
         }while(next != -1);
         fileHeap.close();
@@ -547,7 +444,7 @@ public:
         std::vector<Record> listRecords;
 
         Record record;
-        for (auto pos: pos_records){
+        for (long pos: pos_records){
             fileData.seekg(sizeof(long) + pos*(sizeof(Record) + sizeof(long)), ios::beg);
             fileData.read((char*) &record, sizeof(record));
 
@@ -567,12 +464,14 @@ public:
         long infPos = searchIndice(inf);
         long supPos =searchIndice(sup);
 
+        
         DataPage<TK> data;
         File.open(HeapFile, ios::in|ios::binary);
 
         std::vector<long> pos_records;
+        std::vector<Record> listRecords;
 
-        //MODIFICAR
+        //numero de paginas en la construccion de la estructura
         long limite = pow(M<TK>, 3);
 
         long salto = infPos;
@@ -585,21 +484,21 @@ public:
                 std::vector<long> temp = data.range(inf, sup);
                 
                 //insertar al conjunto de resultados
-                pos_records.insert(pos_records.end(), temp.begin(), pos_records.end());
+                pos_records.insert(pos_records.end(), temp.begin(), temp.end());
 
-                next = data.getNext();
+                next = data.next;
             }while(next != -1);
 
             //me muevo a la siguiente pagina.
             salto = salto + sizeof(DataPage<TK>);
-
+            
+            
         }while(salto <= supPos);
 
         File.close();
         
         //obtengo los datos del archivo de records  real.
         File.open(dataFile, ios::in|ios::binary);
-        std::vector<Record> listRecords;
 
         Record record;
         for (auto pos: pos_records){
@@ -609,8 +508,9 @@ public:
             listRecords.push_back(record);
         }
 
+        
         File.close();
-
+        
         return listRecords;
     }
 
@@ -626,20 +526,24 @@ public:
         do{
             File.seekg(next, ios::beg);
             File.read((char*) &data, sizeof(data));
+            bool cambio = false;
             if(data.count > 0){
                 //cambio el ultimo por el que estoy revisando
                 for(int i = 0; i < data.count; i++){
                     if(data.page[i].key == key){
-                        pos_records.push_back(data.page[i].key);
+                        cambio = true;
+                        pos_records.push_back(data.page[i].position);
 
                         data.page[i] = data.page[data.count-1];
                         data.count--;
                     }
                 }
                 
-                //escribo en memoria el cambio
-                File.seekp(next, ios::beg);
-                File.write((char*) &data, sizeof(data));
+                //escribo en memoria si hubo cambios
+                if(cambio){
+                    File.seekp(next, ios::beg);
+                    File.write((char*) &data, sizeof(data));
+                }
             }
 
             next = data.next;

@@ -3,6 +3,7 @@
         "*.tcc": "cpp",
         "cmath": "cpp",
         "chrono": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "iosfwd": "cpp"
     }
 }

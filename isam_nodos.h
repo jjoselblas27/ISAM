@@ -26,7 +26,6 @@ template<typename TK>
 //inline static constexpr long N = (PAGE_SIZE - sizeof(int) - sizeof(long)) / (sizeof(Pares<TK>));
 inline static constexpr long N = 2;
 
-//archivo de indices 1,2,3
 // pares: tupla<TK,posicion>
 template<typename TK>
 struct IndexPage{
@@ -111,7 +110,6 @@ struct DataPage{
                 res.push_back(page[i].position);
             }
         }
-
         return res;
     }
 
@@ -122,7 +120,7 @@ struct DataPage{
 
     void show(){
         for (int i=0;i<count;i++){
-            cout << page[i].key << ", ";
+            cout <<"(" << page[i].key << ", " << page[i].position << "), ";
         }
         cout << ". next: " << next << endl;
     }

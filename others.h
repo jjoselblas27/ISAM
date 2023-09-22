@@ -35,10 +35,7 @@ struct Pares{
     long getPos(){
         return position;
     }
-
-
 };
-
 
 
 #endif //OTHERS_H

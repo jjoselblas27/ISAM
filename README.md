@@ -43,7 +43,18 @@ digamos que K es la cantidad de "records" en las hojas.
 
 
 ## PROBLEMAS
-- la funcion para construir la estructura esta mal.
-- Problema como guardo la posicion del next en el heapfile.
+- la funcion para insertar los nodos esta mal.
+- al parecer cuando insertas nodos y despues lo eliminas, el puntero al datafile no muestro el valor correcto posiblemente: deleteRecord, insertRecord por ahi es el problema.
 
+actualmente:
+keys ->      [2829,    2835]
+posRecord -> 962208   962208
+
+aparecen en la misma posicion.
+
+
+- PROBLEMA: en la funcion insertDataFile no funciona la escritura. osea no actualiza el header ni el record en la posicion dada.
+
+
+- NUEVO PROBLEMA: en el insertdatafile - la posicion no es la correcta verificar el tellp.
 
