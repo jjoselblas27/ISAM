@@ -2,18 +2,18 @@
 #include "ISAM.h"
 
 template<typename Record>
-int GetKeyFromRecord(const Record& player) {
+int GetKeyFromRecord(const Record& audio) {
     // Supongamos que la clave es el nombre del jugador
-    return player.value;
+    return audio.duration_ms;
 }
 
 
 template<typename TK, typename Record>
 void pRead(ISAM<TK,Record> &isam){
-    long num;
-    cin >> num;
+    TK key;
+    cin >> key;
 
-    vector<Player> res = isam.Search(num);
+    vector<AudioFeatures> res = isam.Search(key);
     
     cout << res.size() << endl;
 
@@ -27,20 +27,20 @@ template<typename TK, typename Record>
 void pInsert(ISAM<TK,Record> &isam){
     
     //primera
-    //Record player("2855", "arequipa", "FCPORCINOS", 28, 28,"LATERAL", 2855, 28,170,68);
-    //Record player("3200", "arequipa", "FCPORCINOS", 28, 28,"LATERAL", 3200, 28,170,68);
+    //Record audio("AEAAEAAEAAEA",0.0304,0.565,30000,0.736,0.306,0,0.37,-12.155,1,0.423,135,4,0.235);
+    //Record audio("BAAAEAAEAAEA",0.0304,0.565,31000,0.736,0.306,0,0.37,-12.155,1,0.423,135,4,0.235);
 
     //segunda
-    Record player("2800", "arequipa", "FCPORCINOS", 28, 28,"LATERAL", 2800, 28,170,68);
-    //Record player("2900", "arequipa", "FCPORCINOS", 28, 28,"LATERAL", 2900, 28,170,68);
+    Record audio("CAAAEAAEAAEA",0.0304,0.565,3200,0.736,0.306,0,0.37,-12.155,1,0.423,135,4,0.235);
+    //Record audio("DAAAEAAEAAEA",0.0304,0.565,3300,0.736,0.306,0,0.37,-12.155,1,0.423,135,4,0.235);
 
-    //cout << player.to_string() << endl;
-    isam.insertRecord(player);
+    isam.insertRecord(audio);
+
 }
 
 template<typename TK, typename Record>
 void pRemove(ISAM<TK,Record> &isam){
-    long key;
+    TK key;
     cin >> key;
 
     isam.remove(key);   
@@ -48,7 +48,7 @@ void pRemove(ISAM<TK,Record> &isam){
 
 template<typename TK, typename Record>
 void pRange(ISAM<TK,Record> &isam){
-    long inf,sup;
+    TK inf,sup;
     cin >> inf >> sup;
 
     vector<Record> res = isam.rangeSearch(inf,sup);
@@ -64,18 +64,21 @@ void pRange(ISAM<TK,Record> &isam){
 int main() {
 
     //la key sea value
-    ISAM<long, Player> isam("database/Fifa 23 Players Data Short.csv", "datafile", "value",  GetKeyFromRecord<Player>);
+    ISAM<int, AudioFeatures> isam("database/audio_features_10k.csv", "datafile", "duration_ms",  GetKeyFromRecord<AudioFeatures>);
 
-    cout << "indexPage: " << sizeof(IndexPage<long>) 
-    << " DataPage: " << sizeof(DataPage<long>) << endl;
-
+    cout << "indexPage: " << sizeof(IndexPage<int>) 
+    << " DataPage: " << sizeof(DataPage<int>) << endl;
+    
+    //cout << "int: " << sizeof(int) << " long: " << sizeof(long) << " pares: " << sizeof(Pares<long>) << endl;
+    //cout << "M: " << M<long> <<endl;
+    //cout << "N: " << N<long> << endl; 
     //del: 120  search 135
     //2280 3200
     //
     //pInsert(isam);
-    //pRead(isam);
+    pRead(isam);
     //pRemove(isam);
     //pRead(isam);
-    pRange(isam);
+    //pRange(isam);
     return 0;
 }

@@ -4,39 +4,55 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
+using namespace std;
 
 #pragma pack(push, 1)
-struct Player {
-    char knownAs[100]{'\0'};
-    char nationality[100]{'\0'};
-    char clubName[100]{'\0'};
-    int clubJerseyNumber;
-    int overall;
-    char bestPosition[4]{'\0'};
-    long value;
-    int age;
-    int height;
-    int weight;
+struct AudioFeatures
+{
+public:
+    char isrc[13]{'\0'};
+    double acousticness;
+    double danceability;
+    int duration_ms;
+    double energy;
+    double instrumentalness;
+    int key;
+    double liveness;
+    double loudness;    
+    int mode;
+    double speechiness;
+    double tempo;
+    int time_signature;
+    double valence;
 
-    Player() = default;
+    // Constructor por defecto
+    AudioFeatures() :  acousticness(0.0), danceability(0.0), duration_ms(0), energy(0.0), instrumentalness(0.0),
+            key(-1), liveness(0.0), loudness(0.0), mode(0), speechiness(0.0), tempo(0.0),
+            time_signature(0), valence(0.0) {}
 
-    Player(std::string knownAs, std::string nationality, std::string clubName, int clubJerseyNumber, 
-            int overall, std::string bestPosition, long value, int age, int height, int weight) : 
-        clubJerseyNumber(clubJerseyNumber), overall(overall), age(age), height(height), weight(weight) {
-        std::copy(knownAs.begin(), knownAs.end(), this->knownAs);
-        std::copy(nationality.begin(), nationality.end(), this->nationality);
-        std::copy(clubName.begin(), clubName.end(), this->clubName);
-        std::copy(bestPosition.begin(), bestPosition.end(), this->bestPosition);
-        this->value = value;
-    }
+    // Constructor con parámetros
+    AudioFeatures(string isrc,double ac, double da, int du, double en, double ins, int k, double li, double lou,
+                    int m, double sp, double te, int ts, double va)
+            : acousticness(ac), danceability(da), duration_ms(du), energy(en), instrumentalness(ins),
+            key(k), liveness(li), loudness(lou), mode(m), speechiness(sp), tempo(te),
+            time_signature(ts), valence(va) {
 
-    std::string to_string() {
-        std::stringstream stream;
-        stream << "(" << knownAs << ", " << nationality << ", " << clubName << ", " << clubJerseyNumber << ", " << overall
-                << ", " << bestPosition << ", " << value << ", " << age << ", " << height << ", " << weight << ")";
-        return stream.str();
+                std::copy(isrc.begin(), isrc.end(), this->isrc);
+
+            }
+    
+    std::string to_string() const {
+        std::ostringstream oss;
+        oss << "(" << isrc << ", " << acousticness << ", " << danceability << ", " << duration_ms << ", " << energy
+            << ", " << instrumentalness << ", " << key << ", " << liveness << ", " << loudness
+            << ", " << mode << ", " << speechiness << ", " << tempo << ", " << time_signature
+            << ", " << valence << ")";
+        return oss.str();
     }
 };
+
+
 #pragma pack(pop)
 
 #endif // RECORD_HPP

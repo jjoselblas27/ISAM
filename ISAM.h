@@ -43,7 +43,7 @@ getLlave -> me retorna el valor de la llave
 */
 template<
     typename TK, 
-    typename Record = Player,
+    typename Record = AudioFeatures,
     typename getLlave = std::function<TK(const Record&)>>
 class ISAM{
 private:
@@ -140,7 +140,6 @@ private:
         IndexPage<TK> index3;
         //busqueda en el nivel 1
         long pos = indiceRAM.search(key);
-        
         //busqueda en nivel 2
         File.open(IndexFile[1], ios::in|ios::binary);
         File.seekg(pos, ios::beg);
@@ -148,7 +147,6 @@ private:
         File.close();
 
         pos = index2.search(key);
-
         //busqueda en nivel 3
         File.open(IndexFile[2], ios::in|ios::binary);
         File.seekg(pos, ios::beg);
@@ -156,56 +154,99 @@ private:
         File.close();
 
         pos = index3.search(key);
-
         return pos;
     }
 
     void load(string database) {
-        std::fstream csvFile(database, std::ios::in);
         File.open(dataFile, ios::out|ios::binary);
+        std::ifstream csvFile(database);
 
-        //creo el header
+        if (!csvFile.is_open())
+        {
+            std::cerr << "Error al abrir el archivo CSV." << std::endl;
+            return;
+        }
+
         long first = -1;
-        File.write((char*) &first, sizeof(first));
+        //test
+        long count = 0;
+
+        //header del datafile.
+        File.seekp(0,ios::beg);
+        File.write((char*) &first, sizeof(long));
 
         std::string line;
+
         std::getline(csvFile, line);
-        while (std::getline(csvFile, line)) {
-            std::string knownAs;
-            std::string nationality;
-            std::string clubName;
-            std::string clubJerseyNumberStr;
-            std::string overallStr;
-            std::string bestPosition;
-            std::string valueStr;
-            std::string ageStr;
-            std::string heightStr;
-            std::string weightStr;
 
-            std::stringstream lineStream(line);
+        while (std::getline(csvFile, line))
+        {
+            count++;
+            std::istringstream ss(line);
+            Record record;
+            std::string field;
 
-            std::getline(lineStream, knownAs, ',');
-            std::getline(lineStream, nationality, ',');
-            std::getline(lineStream, clubName, ',');
-            std::getline(lineStream, clubJerseyNumberStr, ',');
-            std::getline(lineStream, overallStr, ',');
-            std::getline(lineStream, bestPosition, ',');
-            std::getline(lineStream, valueStr, ',');
-            std::getline(lineStream, ageStr, ',');
-            std::getline(lineStream, heightStr, ',');
-            std::getline(lineStream, weightStr, ',');
+            // Leer y asignar cada atributo del registro desde el CSV
 
-            int clubJerseyNumber = std::stoi(clubJerseyNumberStr);
-            int overall = std::stoi(overallStr);
-            int value = std::stoi(valueStr);
-            int age = std::stoi(ageStr);
-            int height = std::stoi(heightStr);
-            int weight = std::stoi(weightStr);
+            if (std::getline(ss, field, ','))
+            {
+                std::copy(field.begin(), field.end(), record.isrc);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.acousticness = string_to_double(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.danceability = string_to_double(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.duration_ms = std::stoi(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.energy = string_to_double(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.instrumentalness = string_to_double(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.key = std::stoi(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.liveness = string_to_double(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.loudness = string_to_double(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.mode = std::stoi(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.speechiness = string_to_double(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.tempo = string_to_double(field);
+            }
+            if (std::getline(ss, field, ','))
+            {
+                record.time_signature = std::stoi(field);
+            }
+            if (std::getline(ss, field))
+            {
+                record.valence = string_to_double(field);
+            }
 
-            Record record(knownAs, nationality, clubName, clubJerseyNumber, overall, bestPosition, value, age, height, weight);
-
-            File.write((char*) &record, sizeof(record));
-            File.write((char*) &first, sizeof(first));
+            File.write((char *)&record, sizeof(record));
+            File.write((char *)&first, sizeof(first));
         }
 
         csvFile.close();
@@ -238,6 +279,7 @@ private:
             FileData.read((char*) &basura, sizeof(basura));
 
             Pares<TK> par(getKey(record), pos);
+            
             paresKeyPos.push_back(par);
         }
 
@@ -245,8 +287,7 @@ private:
         sort(paresKeyPos.begin(),paresKeyPos.end(), [](const Pares<TK>& a, const Pares<TK>& b) {
         return a.key < b.key;
         });
-
-
+        
         //construyo la estructura del arbol
         buildStruct(paresKeyPos, pow(M<TK>+1,3));
 
@@ -330,13 +371,14 @@ private:
 
         File.close();
     }
+
 public:
     ISAM(string database, string dataFile, string nameKey, getLlave getKey){
 
-        this->dataFile = "./database/" + dataFile + ".bin";
-        this->HeapFile = "./database/heap_" + nameKey + ".bin";
+        this->dataFile = "./database/files/ " + dataFile + ".bin";
+        this->HeapFile = "./database/files/heap_" + nameKey + ".bin";
         for(int i=0;i<3;i++){
-            this->IndexFile[i] = "./database/" + nameKey + "_indice_" + to_string(i) + ".bin";
+            this->IndexFile[i] = "./database/files/" + nameKey + "_indice_" + to_string(i) + ".bin";
         }
 
         this->getKey = getKey;
@@ -427,14 +469,12 @@ public:
             fileHeap.seekg(next, ios::beg);
             fileHeap.read((char*) &data, sizeof(data));
             
-
+            data.show();
             std::vector<long> temp = data.search(key);
-            
             //insertar al conjunto de resultados
             pos_records.insert(pos_records.end(), temp.begin(), temp.end());
 
             next = data.next;
-            
         }while(next != -1);
         fileHeap.close();
 

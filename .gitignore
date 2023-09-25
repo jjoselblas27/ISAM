@@ -1,3 +1,7 @@
-database
+# Ignorar la carpeta 'files' en la carpeta 'database'
+database/files/
+
+# Ignorar todos los archivos CSV en la carpeta 'database'
+database/*.csv
 
 a.out

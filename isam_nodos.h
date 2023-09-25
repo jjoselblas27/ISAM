@@ -15,16 +15,22 @@ Leaf_page: nodos dentro del archivo de hojas.
 #include "./others.h"
 
 
-#define PAGE_SIZE 2000
+#define PAGE_SIZE 500
 
+//tengo 126 mil y algo
 //DEFINIR M y K 
 template<typename TK>
 //inline static constexpr long M = (PAGE_SIZE - sizeof(int) - sizeof(long)) / (sizeof(Pares<TK>) + sizeof(long));
-inline static constexpr long M = 2;
-
+inline static constexpr long M = 4;
+//SI PAGE_SIZE = 1500 -> M = 62
+//1000 -> M = 41
+//500 -> 20.3
 template<typename TK>
 //inline static constexpr long N = (PAGE_SIZE - sizeof(int) - sizeof(long)) / (sizeof(Pares<TK>));
-inline static constexpr long N = 2;
+inline static constexpr long N = 5;
+//SI PAGE_SIZE = 1500 -> N = 93 
+//1000 -> N = 61
+//500 -> 30
 
 // pares: tupla<TK,posicion>
 template<typename TK>
@@ -125,5 +131,6 @@ struct DataPage{
         cout << ". next: " << next << endl;
     }
 };
+
 
 #endif //ISAM_NODOS_H
